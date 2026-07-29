@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>West Bengal Highway Atlas</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div id="app">
+
+  <aside id="sidebar">
+    <header class="brand">
+      <svg class="compass" viewBox="0 0 40 40" width="34" height="34" aria-hidden="true">
+        <circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="1.2"/>
+        <path d="M20 4 L23 20 L20 36 L17 20 Z" fill="currentColor"/>
+        <circle cx="20" cy="20" r="2" fill="#0f172a"/>
+      </svg>
+      <div>
+        <h1>West Bengal<br/>Highway Atlas</h1>
+        <p class="eyebrow">Boundary &amp; Highway Survey · OpenStreetMap</p>
+      </div>
+    </header>
+
+    <section class="panel">
+      <label class="field-label" for="highway-search">Find a highway</label>
+      <div class="search-row">
+        <input type="text" id="highway-search" list="ref-list" placeholder="e.g. NH12, SH5…" autocomplete="off" />
+        <button id="search-go" class="btn-icon" title="Jump to highway" aria-label="Jump to highway">
+          <svg viewBox="0 0 20 20" width="15" height="15"><path fill="currentColor" d="M13.6 12.2a6 6 0 1 0-1.4 1.4l4.1 4.1 1.4-1.4-4.1-4.1ZM8 12.5A4.5 4.5 0 1 1 12.5 8 4.5 4.5 0 0 1 8 12.5Z"/></svg>
+        </button>
+      </div>
+      <datalist id="ref-list"></datalist>
+    </section>
+
+    <section class="panel">
+      <h2>Legend</h2>
+      <ul class="legend">
+        <li><span class="swatch boundary"></span> State boundary</li>
+        <li><span class="swatch nh"></span> National highway</li>
+        <li><span class="swatch sh"></span> State highway</li>
+        <li><span class="swatch fade"></span> Outside West Bengal</li>
+      </ul>
+    </section>
+
+    <section class="panel">
+      <h2>Layers</h2>
+      <label class="toggle">
+        <input type="checkbox" id="toggle-boundary" checked />
+        <span>West Bengal boundary</span>
+      </label>
+      <label class="toggle">
+        <input type="checkbox" id="toggle-nh" checked />
+        <span>National highways</span>
+      </label>
+      <label class="toggle">
+        <input type="checkbox" id="toggle-sh" checked />
+        <span>State highways</span>
+      </label>
+      <label class="toggle">
+        <input type="checkbox" id="toggle-fade" checked />
+        <span>Fade outside boundary</span>
+      </label>
+    </section>
+
+    <section class="panel" id="data-panel">
+
+      <div id="stats-view">
+        <h2>Data</h2>
+        <dl class="stats">
+          <div><dt>Boundary</dt><dd id="stat-boundary">loading…</dd></div>
+          <div><dt>National highway segments</dt><dd id="stat-nh">loading…</dd></div>
+          <div><dt>State highway segments</dt><dd id="stat-sh">loading…</dd></div>
+          <div><dt>Highways found</dt><dd id="stat-refs">–</dd></div>
+        </dl>
+        <p class="note" id="status-note">Fetching boundary &amp; highway data…</p>
+      </div>
+
+      <div id="highway-view" hidden>
+        <button id="back-btn" class="back-btn">
+          <svg viewBox="0 0 20 20" width="13" height="13"><path fill="currentColor" d="M12.7 4.3 6.4 10l6.3 5.7 1.3-1.4L9.1 10l4.9-4.3z"/></svg>
+          Back to overview
+        </button>
+        <div class="highway-card">
+          <span class="kind-tag" id="hw-kind">Highway</span>
+          <h2 id="hw-ref">—</h2>
+          <p class="hw-name" id="hw-name"></p>
+          <dl class="stats hw-stats">
+            <div><dt>Road class</dt><dd id="hw-class">–</dd></div>
+            <div><dt>Network</dt><dd id="hw-network">–</dd></div>
+            <div><dt>Segments</dt><dd id="hw-segments">–</dd></div>
+            <div><dt>Length (approx.)</dt><dd id="hw-length">–</dd></div>
+          </dl>
+        </div>
+      </div>
+
+    </section>
+
+    <footer class="credits">
+      Map data &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors.
+      Boundary &amp; highway extracts generated with the included Python script.
+    </footer>
+  </aside>
+
+  <main id="map"></main>
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
