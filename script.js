@@ -9,7 +9,7 @@ const NH_URL = "data/nh_clipped.geojson";
 const SH_URL = "data/sh_clipped.geojson";
 
 const map = L.map("map", {
-  zoomControl: true,
+  zoomControl: false,
   minZoom: 5,
   maxZoom: 18,
 });
@@ -17,12 +17,14 @@ const map = L.map("map", {
 // Fallback view (roughly West Bengal) until the boundary loads and we can fit to it.
 map.setView([23.6, 87.9], 7);
 
+L.control.zoom({ position: "bottomright" }).addTo(map);
+
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   maxZoom: 19,
   attribution: "&copy; OpenStreetMap contributors",
 }).addTo(map);
 
-L.control.scale({ imperial: false }).addTo(map);
+L.control.scale({ imperial: false, position: "bottomright" }).addTo(map);
 
 let boundaryLayer = null;
 let maskLayer = null;
@@ -52,6 +54,8 @@ const hwClass = document.getElementById("hw-class");
 const hwNetwork = document.getElementById("hw-network");
 const hwSegments = document.getElementById("hw-segments");
 const hwLength = document.getElementById("hw-length");
+const hwDegraded = document.getElementById("hw-degraded");
+const generateTenderBtn = document.getElementById("generate-tender-btn");
 const highwayCard = document.querySelector(".highway-card");
 
 const searchInput = document.getElementById("highway-search");
@@ -177,9 +181,15 @@ function segmentLengthKm(layers) {
   let meters = 0;
   layers.forEach((layer) => {
     const latlngs = layer.getLatLngs();
-    for (let i = 1; i < latlngs.length; i++) {
-      meters += map.distance(latlngs[i - 1], latlngs[i]);
-    }
+    // getLatLngs() returns a flat array of points for LineString geometries,
+    // but a nested array (one sub-array per part) for MultiLineString ones.
+    // Detect which shape we got and normalize to a list of lines either way.
+    const lines = latlngs.length && Array.isArray(latlngs[0]) ? latlngs : [latlngs];
+    lines.forEach((line) => {
+      for (let i = 1; i < line.length; i++) {
+        meters += map.distance(line[i - 1], line[i]);
+      }
+    });
   });
   return meters / 1000;
 }
@@ -188,15 +198,27 @@ function showHighwayPanel(key) {
   const entry = highwayIndex.get(key);
   if (!entry) return;
 
-  const lengthKm = segmentLengthKm(entry.layers);
-
   hwKind.textContent = STYLES[entry.kind].label;
   hwRef.textContent = entry.ref;
   hwName.textContent = entry.name || "No name recorded in OpenStreetMap";
   hwClass.textContent = entry.highwayClass;
   hwNetwork.textContent = entry.network || "–";
   hwSegments.textContent = entry.layers.length.toLocaleString();
-  hwLength.textContent = `${lengthKm.toFixed(1)} km`;
+
+  try {
+    const lengthKm = segmentLengthKm(entry.layers);
+    hwLength.textContent = `${lengthKm.toFixed(1)} km`;
+  } catch (err) {
+    hwLength.textContent = "Unavailable";
+    console.error(`Failed to compute length for ${entry.ref}:`, err);
+  }
+
+  if (typeof updateDegradedValue === "function") {
+    updateDegradedValue(entry.ref);
+  } else {
+    hwDegraded.textContent = "Unavailable";
+    console.error("updateDegradedValue() is not defined — check that degradation.js loaded correctly.");
+  }
 
   highwayCard.style.setProperty("--card-accent", entry.kind === "NH" ? "var(--nh)" : "var(--sh)");
 
@@ -219,6 +241,11 @@ backBtn.addEventListener("click", () => {
   clearHighlight();
   highwayView.hidden = true;
   statsView.hidden = false;
+});
+
+// Placeholder — no functionality wired up yet.
+generateTenderBtn.addEventListener("click", () => {
+  console.log("Generate Tender clicked — not implemented yet.");
 });
 
 function loadHighwayLayer(url, kind) {
@@ -347,4 +374,32 @@ toggleFade.addEventListener("change", (e) => {
   } else {
     map.removeLayer(maskLayer);
   }
+});
+
+// ---- Legend / Layers floating popovers ----
+const popoverGroups = [
+  { btn: document.getElementById("legend-btn"), popover: document.getElementById("legend-popover") },
+  { btn: document.getElementById("layers-btn"), popover: document.getElementById("layers-popover") },
+];
+
+function closeAllPopovers(exceptPopover) {
+  popoverGroups.forEach(({ btn, popover }) => {
+    if (popover === exceptPopover) return;
+    popover.hidden = true;
+    btn.setAttribute("aria-expanded", "false");
+  });
+}
+
+popoverGroups.forEach(({ btn, popover }) => {
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const wasHidden = popover.hidden;
+    closeAllPopovers(wasHidden ? popover : null);
+    popover.hidden = !wasHidden;
+    btn.setAttribute("aria-expanded", String(wasHidden));
+  });
+});
+
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".control-group")) closeAllPopovers(null);
 });

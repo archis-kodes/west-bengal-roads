@@ -24,13 +24,14 @@ html, body {
 }
 
 #app {
-  display: grid;
-  grid-template-columns: 336px 1fr;
+  position: relative;
   height: 100vh;
   width: 100vw;
 }
 
 #map {
+  position: absolute;
+  inset: 0;
   height: 100%;
   width: 100%;
   background: #e4e6da;
@@ -45,42 +46,21 @@ html, body {
 /* --- Sidebar --- */
 
 #sidebar {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 500;
+  width: 320px;
+  max-height: calc(100vh - 32px);
   background: var(--panel);
-  border-right: 1px solid var(--line);
-  padding: 26px 22px 18px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px 20px 16px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  box-shadow: 2px 0 14px rgba(16, 32, 28, 0.05);
-  z-index: 500;
-}
-
-.brand {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid var(--line);
-}
-
-.brand .compass { color: var(--accent); flex-shrink: 0; margin-top: 2px; }
-
-.brand h1 {
-  font-size: 1.08rem;
-  line-height: 1.25;
-  margin: 0 0 4px 0;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-
-.eyebrow {
-  margin: 0;
-  font-family: "IBM Plex Mono", monospace;
-  font-size: 0.66rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ink-soft);
+  box-shadow: 0 8px 28px rgba(16, 32, 28, 0.16);
 }
 
 .panel {
@@ -284,16 +264,90 @@ html, body {
 
 .hw-stats div:last-child { border-bottom: none; padding-bottom: 0; }
 
-.credits {
-  margin-top: auto;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
-  font-size: 0.68rem;
-  color: var(--ink-soft);
-  line-height: 1.5;
+.tender-btn {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  background: var(--card-accent, var(--nh));
+  color: #fff;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+.tender-btn:hover { filter: brightness(1.08); }
+.tender-btn:active { filter: brightness(0.95); }
+
+/* --- Floating search bar (top-left) --- */
+
+.floating-panel {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 500;
+  width: 280px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px 16px 14px;
+  box-shadow: 0 8px 28px rgba(16, 32, 28, 0.16);
 }
 
-.credits a { color: var(--ink); }
+/* --- Floating Legend / Layers buttons (bottom-left) --- */
+
+#floating-controls {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  z-index: 500;
+  display: flex;
+  gap: 10px;
+}
+
+.control-group { position: relative; }
+
+.fab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.84rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 8px 28px rgba(16, 32, 28, 0.16);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.fab:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+.fab[aria-expanded="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+.popover {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 0;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px;
+  min-width: 220px;
+  box-shadow: 0 8px 28px rgba(16, 32, 28, 0.16);
+}
+.popover[hidden] { display: none; }
+
+/* --- Degraded value metric (highway card) --- */
+
+.degraded-value {
+  color: #b91c1c;
+  font-weight: 700;
+}
 
 /* --- Leaflet theming --- */
 .leaflet-popup-content-wrapper {
@@ -308,6 +362,11 @@ html, body {
 }
 
 @media (max-width: 720px) {
-  #app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
-  #sidebar { border-right: none; border-bottom: 1px solid var(--line); max-height: 44vh; box-shadow: 0 2px 14px rgba(16,32,28,0.06); }
+  .floating-panel { width: calc(100vw - 32px); }
+  #sidebar {
+    left: 16px;
+    right: 16px;
+    width: auto;
+    max-height: 40vh;
+  }
 }
